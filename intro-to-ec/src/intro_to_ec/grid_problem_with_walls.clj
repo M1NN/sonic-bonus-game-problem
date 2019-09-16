@@ -41,6 +41,10 @@
   (filter (partial legal-state min-range max-range wall-set)
           (map (partial apply-move position) all-moves)))
 
+(defn manhattan-distance
+  [[gx gy] [px py]]
+  (+ (Math/abs (- gx px)) (Math/abs (- gy py))))
+
 (def min-range -10)
 (def max-range 10)
 (def no-walls #{})
@@ -64,4 +68,5 @@
    or crossed."
   [min-range max-range wall-set]
   {:goal? origin-goal?
-   :make-children (partial grid-children min-range max-range wall-set)})
+   :make-children (partial grid-children min-range max-range wall-set)}
+   :heuristic (manhattan-distance [0 0] ))
