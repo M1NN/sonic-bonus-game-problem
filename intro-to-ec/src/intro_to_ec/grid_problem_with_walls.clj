@@ -68,5 +68,5 @@
    or crossed."
   [min-range max-range wall-set]
   {:goal? origin-goal?
-   :make-children (partial grid-children min-range max-range wall-set)}
-   :heuristic (manhattan-distance [0 0] ))
+   :make-children (partial grid-children min-range max-range wall-set)
+   :heuristic (partial manhattan-distance [0 0])})
