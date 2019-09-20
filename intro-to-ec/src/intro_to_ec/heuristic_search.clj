@@ -6,7 +6,7 @@
   [new-states frontier visited]
   (remove (cset/union (set frontier) (set visited)) new-states))
 
-(def depth-first-search
+(def heuristic-search
   {:get-next-node #(first (first %))
    :add-children #(reduce (fn [front child] (assoc front child (%1 child))) %2 %3)})
 
@@ -44,7 +44,7 @@
           (recur
            (add-children
             heuristic
-            (rest frontier)
+            (pop frontier)
               kids)
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (inc num-calls)))))))
