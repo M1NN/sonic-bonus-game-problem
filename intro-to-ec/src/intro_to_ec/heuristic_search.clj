@@ -10,6 +10,10 @@
   {:get-next-node #(first (first %))
    :add-children #(reduce (fn [front child] (assoc front child (%1 child))) %2 %3)})
 
+(def a-star-search
+  {:get-next-node #(first (first %))
+   :add-children #(reduce (fn [front child] (assoc front child (+ (%1 child) %4))) %2 %3)})
+
 (def breadth-first-search
   {:get-next-node first
    :add-children assoc})
@@ -30,11 +34,13 @@
    {:keys [goal? make-children heuristic]}
    start-node max-calls]
   (loop [frontier (pm/priority-map start-node (heuristic start-node))
+         cost-so-far {0 :start-node}
          came-from {start-node :start-node}
          num-calls 0]
     (println num-calls ": " frontier)
     (println came-from)
-    (let [current-node (get-next-node frontier)]
+    (let [current-node (get-next-node frontier)
+          new-cost (+ (get cost-so-far current-node) 1)]
       (cond
         (goal? current-node) (generate-path came-from current-node)
         (= num-calls max-calls) :max-calls-reached
@@ -45,6 +51,8 @@
            (add-children
             heuristic
             (pop frontier)
-              kids)
+              kids
+              new-cost)
+           (conj cost-so-far new-cost)
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (inc num-calls)))))))
