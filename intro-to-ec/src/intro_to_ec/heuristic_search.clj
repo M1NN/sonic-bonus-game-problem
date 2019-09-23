@@ -34,11 +34,12 @@
    {:keys [goal? make-children heuristic]}
    start-node max-calls]
   (loop [frontier (pm/priority-map start-node (heuristic start-node))
-         cost-so-far {0 :start-node}
+         cost-so-far {start-node 0}
          came-from {start-node :start-node}
          num-calls 0]
     (println num-calls ": " frontier)
     (println came-from)
+    (println "Cost-so-far is: " cost-so-far)
     (let [current-node (get-next-node frontier)
           new-cost (+ (get cost-so-far current-node) 1)]
       (cond
@@ -53,6 +54,6 @@
             (pop frontier)
               kids
               new-cost)
-           (conj cost-so-far new-cost)
+           (reduce (fn [costs child] (assoc costs child (heuristic child))) cost-so-far kids) ; (first(first frontier)) new-cost)
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (inc num-calls)))))))
