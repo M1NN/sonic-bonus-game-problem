@@ -45,6 +45,20 @@
   [[gx gy] [px py]]
   (+ (Math/abs (- gx px)) (Math/abs (- gy py))))
 
+(defn double-horizontal
+  [[cx cy] parent cost]
+  (if (= :start-node parent) 1
+  (if (or (> cx (first parent)) (< cx (first parent)))
+    (+ cost 2)
+    (+ cost 1))))
+
+(defn double-vertical
+  [[cx cy] parent cost]
+  (if (= :start-node parent) 1
+  (if (or (> cy (second parent)) (< cy (second parent)))
+    (+ cost 2)
+    (+ cost 1))))
+
 (def min-range -10)
 (def max-range 10)
 (def no-walls #{})
@@ -66,7 +80,9 @@
    the origin. The ranges specify the bounds on the grid world, and the
    `wall-set` is a (possibly empty) set of positions that can't be entered
    or crossed."
-  [min-range max-range wall-set]
+  [min-range max-range wall-set heuristic]
   {:goal? origin-goal?
    :make-children (partial grid-children min-range max-range wall-set)
-   :heuristic (partial manhattan-distance [0 0])})
+   :heuristic #(cond (= heuristic "manhattan-distance") (partial manhattan-distance [0 0])
+                  (= heuristic "double-horizontal") (double-horizontal %1 %2 %3)
+                  (= heuristic "double-vertical") (double-vertical %1 %2 %3))})
