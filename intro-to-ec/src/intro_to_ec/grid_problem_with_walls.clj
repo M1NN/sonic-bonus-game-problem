@@ -42,7 +42,7 @@
           (map (partial apply-move position) all-moves)))
 
 (defn manhattan-distance
-  [[gx gy] [px py]]
+  [[gx gy] [px py] dumb dumb]
   (+ (Math/abs (- gx px)) (Math/abs (- gy py))))
 
 (defn double-horizontal
@@ -83,6 +83,6 @@
   [min-range max-range wall-set heuristic]
   {:goal? origin-goal?
    :make-children (partial grid-children min-range max-range wall-set)
-   :heuristic #(cond (= heuristic "manhattan-distance") (partial manhattan-distance [0 0])
+   :heuristic #(cond (= heuristic "manhattan-distance") (manhattan-distance [0 0] %1 %2 %3)
                   (= heuristic "double-horizontal") (double-horizontal %1 %2 %3)
                   (= heuristic "double-vertical") (double-vertical %1 %2 %3))})
