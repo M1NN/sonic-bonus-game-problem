@@ -41,8 +41,11 @@
   (filter (partial legal-state min-range max-range wall-set)
           (map (partial apply-move position) all-moves)))
 
+;; Because of how we changed make-grid-problem, this function now has to take
+;; two extra arguments. There is probably a better way to handle the problem but
+;; we couldn't figure out in time
 (defn manhattan-distance
-  [[gx gy] [px py] dumb dumb]
+  [[gx gy] [px py] extra1 extra2]
   (+ (Math/abs (- gx px)) (Math/abs (- gy py))))
 
 (defn double-horizontal
