@@ -12,7 +12,7 @@
 
 (def a-star-search
   {:get-next-node #(first (first %))
-   :add-children #(reduce (fn [front child] (assoc front child (+ (%1 child nil nil) %4))) %2 %3)})
+   :add-children #(reduce (fn [front child] (assoc front child (+ (%1 child) %4))) %2 %3)})
 
 (def double-search
     {:get-next-node #(first (first %))
@@ -37,7 +37,7 @@
   [{:keys [get-next-node add-children]}
    {:keys [goal? make-children heuristic]}
    start-node max-calls]
-  (loop [frontier (pm/priority-map start-node (heuristic start-node nil nil))
+  (loop [frontier (pm/priority-map start-node (heuristic start-node))
          came-from {start-node :start-node}
          num-calls 0]
     (println num-calls ": " frontier)
@@ -56,35 +56,53 @@
               kids)
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (inc num-calls)))))))
-nil
 (defn search-a-star
  [{:keys [get-next-node add-children]}
-  {:keys [goal? make-children heuristic]}
+  {:keys [goal? make-children heuristic remove add send-blue send-red]}
   start-node max-calls]
- (loop [frontier (pm/priority-map start-node (heuristic start-node nil nil))
+ (loop [frontier (pm/priority-map start-node (heuristic start-node))
         cost-so-far {start-node 0}
         came-from {start-node :start-node}
-        num-calls 0]
+        num-calls 0
+        blue-set send-blue
+        red-set send-red]
    (println num-calls ": " frontier)
    (println came-from)
    (println "Cost-so-far is: " cost-so-far)
    (let [current-node (get-next-node frontier)
          new-cost (+ (get cost-so-far current-node) 1)]
+     (println "BLUE BALL SET: " blue-set)
      (cond
-       (goal? current-node) (generate-path came-from current-node)
+       (goal? blue-set) (generate-path came-from current-node)
        (= num-calls max-calls) :max-calls-reached
        :else
        (let [kids (remove-previous-states
                    (make-children current-node) frontier (keys came-from))]
-         (recur
-          (add-children
-           heuristic
-           (pop frontier)
+         (println current-node)
+         (if (contains? blue-set current-node)
+           (recur
+            (add-children
+             heuristic
+             (pop frontier)
              kids
              new-cost)
-          (reduce (fn [costs child] (assoc costs child (heuristic child nil nil))) cost-so-far kids)
-          (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
-          (inc num-calls)))))))
+            (reduce (fn [costs child] (assoc costs child (heuristic child))) cost-so-far kids)
+            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
+            (inc num-calls)
+            (remove blue-set current-node)
+            (add red-set current-node))
+           
+           (recur
+            (add-children
+             heuristic
+             (pop frontier)
+             kids
+             new-cost)
+            (reduce (fn [costs child] (assoc costs child (heuristic child))) cost-so-far kids)
+            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
+            (inc num-calls)
+            (remove blue-set current-node)
+            (add red-set current-node))))))))
 
 (defn search-doubles
  [{:keys [get-next-node add-children]}

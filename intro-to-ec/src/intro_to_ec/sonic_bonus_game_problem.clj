@@ -3,8 +3,8 @@
 (defn origin-goal?
   "A goal checking function that assumes the target
    position is the origin, i.e., [0 0]."
-  [[x y]]
-  (and (zero? x) (zero? y)))
+  [blue-ball-set]
+  (empty? blue-ball-set))
 
 ;; The possible moves in this lattice world. Each
 ;; move is represented by a vector indicating the
@@ -19,7 +19,7 @@
 (defn apply-move
   "Apply a move to a given position, yielding the new position"
   [position move]
-  (vec (map + position move)))
+  (vec (map + position move))) ;; TRYING TO FIGURE OUT IFS
 
 (defn legal-coordinate
   "Limit our search to the space where the given coordinate
@@ -41,51 +41,38 @@
   (filter (partial legal-state min-range max-range red-ball-set)
           (map (partial apply-move position) all-moves)))
 
-;; Because of how we changed make-grid-problem, this function now has to take
-;; two extra arguments. There is probably a better way to handle the problem but
-;; we couldn't figure out in time
-(defn manhattan-distance
-  [[gx gy] [px py] extra1 extra2]
-  (+ (Math/abs (- gx px)) (Math/abs (- gy py))))
+(defn remove-blue
+  [blue-ball-set position]
+  (disj blue-ball-set position))
 
-(defn double-horizontal
-  [[cx cy] parent cost]
-  (if (= :start-node parent) 1
-  (if (or (> cx (first parent)) (< cx (first parent)))
-    (+ cost 2)
-    (+ cost 1))))
+(defn add-red
+  [red-ball-set position]
+  (conj red-ball-set position))
 
-(defn double-vertical
-  [[cx cy] parent cost]
-  (if (= :start-node parent) 1
-  (if (or (> cy (second parent)) (< cy (second parent)))
-    (+ cost 2)
-    (+ cost 1))))
+(defn blue-left [blue-ball-set position]
+  (if (contains? blue-ball-set position)
+    (- (count blue-ball-set) 1) (count blue-ball-set)))
 
-(def min-range -10)
-(def max-range 10)
-(def no-walls #{})
-(def low-vertical-wall
+(def min-range -2)
+(def max-range 3)
+(def no-balls #{})
+(def blue-3x3
   (set
-   (for [y (range -2 8)]
-     [1 y])))
-(def u-shape
-  (set
-   (concat
-    (for [x (range -5 3)]
-      [x 1])
-    (for [x (range -5 3)]
-      [x -1])
-    [[2 0]])))
+   (for [x (range -1 2)
+         y (range -1 2)]
+     [x y])))
 
 (defn make-sonic-problem
   "Create an instance of a simple problem of moving on a grid towards
    the origin. The ranges specify the bounds on the grid world, and the
    `wall-set` is a (possibly empty) set of positions that can't be entered
    or crossed."
-  [min-range max-range red-ball-set blue-ball-set heuristic]
+  [min-range max-range red-ball-set blue-ball-set]
   {:goal? origin-goal?
    :make-children (partial grid-children min-range max-range red-ball-set)
-   :heuristic #(cond (= heuristic "manhattan-distance") (manhattan-distance [0 0] %1 %2 %3)
-                  (= heuristic "double-horizontal") (double-horizontal %1 %2 %3)
-                  (= heuristic "double-vertical") (double-vertical %1 %2 %3))})
+   :heuristic (partial blue-left blue-ball-set)
+   :remove (partial remove-blue)
+   :add (partial add-red)
+   :send-blue blue-ball-set
+   :send-red red-ball-set}
+  )
